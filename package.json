@@ -1,0 +1,30 @@
+{
+  "name": "getsms",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "dev": "tsx watch src/index.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29",
+    "better-sqlite3": "^11",
+    "express": "^4",
+    "tsx": "^4",
+    "zod": "^3.25"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7",
+    "@types/express": "^4",
+    "@types/node": "^20",
+    "@types/supertest": "^6",
+    "supertest": "^7",
+    "typescript": "^5",
+    "vitest": "^4"
+  }
+}
