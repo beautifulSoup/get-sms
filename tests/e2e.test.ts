@@ -50,4 +50,30 @@ describe("end-to-end", () => {
       });
     expect(res.status).not.toBe(401);
   });
+
+  it("rejects GET /mcp without a bearer token", async () => {
+    const { app } = setup();
+    const res = await request(app).get("/mcp");
+    expect(res.status).toBe(401);
+  });
+
+  it("rejects DELETE /mcp without a bearer token", async () => {
+    const { app } = setup();
+    const res = await request(app).delete("/mcp");
+    expect(res.status).toBe(401);
+  });
+
+  it("returns 405 for GET /mcp with a valid bearer token", async () => {
+    const { app, config } = setup();
+    const res = await request(app).get("/mcp").set("Authorization", `Bearer ${config.mcpApiKey}`);
+    expect(res.status).toBe(405);
+  });
+
+  it("returns 405 for DELETE /mcp with a valid bearer token", async () => {
+    const { app, config } = setup();
+    const res = await request(app)
+      .delete("/mcp")
+      .set("Authorization", `Bearer ${config.mcpApiKey}`);
+    expect(res.status).toBe(405);
+  });
 });

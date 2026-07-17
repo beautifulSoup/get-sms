@@ -21,14 +21,24 @@ export function buildApp(store: SQLiteStore, config: Config): express.Express {
 
   // Stateless Streamable HTTP: a fresh server + transport per request.
   app.post("/mcp", mcpAuth, async (req, res) => {
-    const server = createMcpServer(store, config);
-    const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
-    res.on("close", () => {
-      transport.close();
-      server.close();
-    });
-    await server.connect(transport);
-    await transport.handleRequest(req, res, req.body);
+    try {
+      const server = createMcpServer(store, config);
+      const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
+      res.on("close", () => {
+        transport.close();
+        server.close();
+      });
+      await server.connect(transport);
+      await transport.handleRequest(req, res, req.body);
+    } catch (error) {
+      if (!res.headersSent) {
+        res.status(500).json({
+          jsonrpc: "2.0",
+          error: { code: -32603, message: "Internal server error" },
+          id: null,
+        });
+      }
+    }
   });
 
   const methodNotAllowed = (_req: Request, res: Response) =>
