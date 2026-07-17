@@ -29,10 +29,49 @@ export function getLatestCode(
   if (!hit) return null;
 
   return {
-    code: extractCode(hit.body),
+    code: extractCode(hit.body, config.codeIndicators),
     body: hit.body,
     deviceLabel: hit.device_label,
     receivedAt: hit.received_at,
+  };
+}
+
+export interface ToolTextResult {
+  [key: string]: unknown;
+  content: { type: "text"; text: string }[];
+}
+
+export async function handleGetLatestCode(
+  store: SQLiteStore,
+  config: Config,
+  params: { keyword: string; device?: string; since?: string }
+): Promise<ToolTextResult> {
+  const { keyword, device, since } = params;
+  if (!keyword || keyword.trim() === "") {
+    return {
+      content: [
+        {
+          type: "text",
+          text: "A non-empty `keyword` (the SMS source/brand, e.g. 淘宝) is required. Nothing was returned.",
+        },
+      ],
+    };
+  }
+
+  const result = getLatestCode(store, config, { keyword: keyword.trim(), device, since });
+  if (!result) {
+    return {
+      content: [
+        {
+          type: "text",
+          text: `No matching verification code for keyword "${keyword.trim()}" (it may be outside the time window or not yet received).`,
+        },
+      ],
+    };
+  }
+
+  return {
+    content: [{ type: "text", text: JSON.stringify(result) }],
   };
 }
 
@@ -53,34 +92,7 @@ export function createMcpServer(store: SQLiteStore, config: Config): McpServer {
         since: z.string().optional(),
       },
     },
-    async ({ keyword, device, since }) => {
-      if (!keyword || keyword.trim() === "") {
-        return {
-          content: [
-            {
-              type: "text",
-              text: "A non-empty `keyword` (the SMS source/brand, e.g. 淘宝) is required. Nothing was returned.",
-            },
-          ],
-        };
-      }
-
-      const result = getLatestCode(store, config, { keyword: keyword.trim(), device, since });
-      if (!result) {
-        return {
-          content: [
-            {
-              type: "text",
-              text: `No matching verification code for keyword "${keyword.trim()}" (it may be outside the time window or not yet received).`,
-            },
-          ],
-        };
-      }
-
-      return {
-        content: [{ type: "text", text: JSON.stringify(result) }],
-      };
-    }
+    async ({ keyword, device, since }) => handleGetLatestCode(store, config, { keyword, device, since })
   );
 
   return server;

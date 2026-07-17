@@ -46,4 +46,12 @@ describe("loadConfig", () => {
       loadConfig({ GETSMS_MCP_API_KEY: "k", GETSMS_DEVICES: '[{"label":"x"}]' })
     ).toThrow(/label and token/);
   });
+
+  it("throws when GETSMS_PORT is not a finite number", () => {
+    expect(() => loadConfig({ ...base, GETSMS_PORT: "abc" })).toThrow(/GETSMS_PORT/);
+  });
+
+  it("throws when GETSMS_WINDOW_MINUTES is not a finite number", () => {
+    expect(() => loadConfig({ ...base, GETSMS_WINDOW_MINUTES: "abc" })).toThrow(/GETSMS_WINDOW_MINUTES/);
+  });
 });

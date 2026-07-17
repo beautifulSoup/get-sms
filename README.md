@@ -137,6 +137,10 @@ A message matches when its body contains `keyword` **and** contains one of
 the configured verification-code indicator terms, and was received within
 the time window. The tool returns the extracted code (if one could be
 found), the raw message body, the device label, and the received timestamp.
+Note: the "received" timestamp and the time window are both measured from
+when the **server** ingests the forwarded message, not the phone's actual
+receipt time — any delay in the forwarding automation counts against the
+window.
 
 ## Config reference
 
@@ -148,7 +152,7 @@ All configuration is via environment variables (see `.env.example`).
 | `GETSMS_DEVICES` | yes | — | JSON array of `{"label": "...", "token": "..."}`. Each entry is one phone: `label` identifies it in results, `token` is the per-device ingest secret used in the `/ingest/:token` URL. |
 | `GETSMS_PORT` | no | `3000` | Port the server listens on. |
 | `GETSMS_DB_PATH` | no | `./data/getsms.db` | Path to the SQLite database file. |
-| `GETSMS_WINDOW_MINUTES` | no | `10` | Default lookback window (minutes) for `get_latest_code`, overridable per-call via `since`. |
+| `GETSMS_WINDOW_MINUTES` | no | `10` | Default lookback window (minutes) for `get_latest_code`, overridable per-call via `since`. Measured from server ingest time, not the phone's actual receipt time. |
 | `GETSMS_CODE_INDICATORS` | no | `验证码,verification code,verification,code,OTP,one-time,passcode` | Comma-separated list of terms that mark a message as containing a verification code. |
 
 ## Development

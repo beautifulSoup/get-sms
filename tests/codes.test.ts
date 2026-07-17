@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { matchesKeyword, hasCodeIndicator, extractCode } from "../src/codes";
+import { DEFAULT_CODE_INDICATORS } from "../src/config";
 
 describe("matchesKeyword", () => {
   it("matches the 【签名】 signature", () => {
@@ -28,15 +29,27 @@ describe("hasCodeIndicator", () => {
 
 describe("extractCode", () => {
   it("extracts a 6-digit code from Chinese SMS", () => {
-    expect(extractCode("【淘宝】您的验证码是123456，请勿泄露")).toBe("123456");
+    expect(extractCode("【淘宝】您的验证码是123456，请勿泄露", DEFAULT_CODE_INDICATORS)).toBe("123456");
   });
   it("extracts a 4-digit code", () => {
-    expect(extractCode("code: 4321")).toBe("4321");
+    expect(extractCode("code: 4321", DEFAULT_CODE_INDICATORS)).toBe("4321");
   });
   it("does not pick a digit run longer than 8", () => {
-    expect(extractCode("订单号1234567890123 验证码 5678")).toBe("5678");
+    expect(extractCode("订单号1234567890123 验证码 5678", DEFAULT_CODE_INDICATORS)).toBe("5678");
   });
   it("returns null when no code present", () => {
-    expect(extractCode("【顺丰】您的快递已签收")).toBeNull();
+    expect(extractCode("【顺丰】您的快递已签收", DEFAULT_CODE_INDICATORS)).toBeNull();
+  });
+
+  describe("numeric-brand senders", () => {
+    it("returns the code, not the sender's numeric brand (铁路12306)", () => {
+      expect(extractCode("【铁路12306】您的验证码是123456", DEFAULT_CODE_INDICATORS)).toBe("123456");
+    });
+    it("returns the code, not the sender's numeric brand (10086)", () => {
+      expect(extractCode("【10086】验证码4321", DEFAULT_CODE_INDICATORS)).toBe("4321");
+    });
+    it("returns the code, not the sender's numeric brand or an embedded account tail (95588)", () => {
+      expect(extractCode("【95588】您尾号1234的账户验证码9876", DEFAULT_CODE_INDICATORS)).toBe("9876");
+    });
   });
 });

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { getLatestCode } from "../src/mcp";
+import { getLatestCode, handleGetLatestCode } from "../src/mcp";
 import { SQLiteStore } from "../src/db";
 import { DEFAULT_CODE_INDICATORS, type Config } from "../src/config";
 
@@ -93,5 +93,42 @@ describe("getLatestCode", () => {
     ]);
     expect(getLatestCode(s, cfg, { keyword: "淘宝", device: "main" })!.code).toBe("999999");
     s.close();
+  });
+});
+
+describe("handleGetLatestCode", () => {
+  it("rejects an empty/whitespace keyword without performing a search", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1_000_000);
+    // Store a message that WOULD match if a search were performed, to prove
+    // the empty-keyword path short-circuits before any lookup happens.
+    const s = storeWith([{ device: "a", body: "【淘宝】验证码 123456", at: 1_000_000 }]);
+    return handleGetLatestCode(s, cfg, { keyword: "   " }).then((result) => {
+      expect(result.content[0].text).toMatch(/keyword.*required/i);
+      s.close();
+    });
+  });
+
+  it("returns the no-match message when the keyword has no match", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1_000_000);
+    const s = storeWith([{ device: "a", body: "【京东】验证码 4321", at: 1_000_000 }]);
+    return handleGetLatestCode(s, cfg, { keyword: "淘宝" }).then((result) => {
+      expect(result.content[0].text).toMatch(/No matching verification code/);
+      s.close();
+    });
+  });
+
+  it("extracts the numeric-brand sender's code correctly end-to-end", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(1_000_000);
+    const s = storeWith([
+      { device: "主力机", body: "【铁路12306】您的验证码是123456", at: 1_000_000 },
+    ]);
+    return handleGetLatestCode(s, cfg, { keyword: "12306" }).then((result) => {
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed.code).toBe("123456");
+      s.close();
+    });
   });
 });

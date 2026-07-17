@@ -52,12 +52,30 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     ? env.GETSMS_CODE_INDICATORS.split(",").map((s) => s.trim()).filter(Boolean)
     : DEFAULT_CODE_INDICATORS;
 
+  let port = 3000;
+  if (env.GETSMS_PORT !== undefined) {
+    const parsedPort = Number(env.GETSMS_PORT);
+    if (!Number.isFinite(parsedPort)) {
+      throw new Error(`GETSMS_PORT must be a finite number, got: ${env.GETSMS_PORT}`);
+    }
+    port = parsedPort;
+  }
+
+  let windowMinutes = 10;
+  if (env.GETSMS_WINDOW_MINUTES !== undefined) {
+    const parsedWindow = Number(env.GETSMS_WINDOW_MINUTES);
+    if (!Number.isFinite(parsedWindow)) {
+      throw new Error(`GETSMS_WINDOW_MINUTES must be a finite number, got: ${env.GETSMS_WINDOW_MINUTES}`);
+    }
+    windowMinutes = parsedWindow;
+  }
+
   return {
-    port: env.GETSMS_PORT ? Number(env.GETSMS_PORT) : 3000,
+    port,
     dbPath: env.GETSMS_DB_PATH ?? "./data/getsms.db",
     mcpApiKey,
     devices,
     codeIndicators: indicators,
-    windowMinutes: env.GETSMS_WINDOW_MINUTES ? Number(env.GETSMS_WINDOW_MINUTES) : 10,
+    windowMinutes,
   };
 }
