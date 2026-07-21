@@ -1,8 +1,10 @@
 {
   "name": "getsms",
   "version": "0.1.0",
-  "private": true,
+  "description": "Self-hosted, single-user service that relays your own phone's SMS verification codes to an AI agent via one MCP tool.",
+  "license": "MIT",
   "type": "module",
+  "keywords": ["mcp", "sms", "otp", "verification-code", "self-hosted", "ai-agent"],
   "engines": { "node": ">=20" },
   "scripts": {
     "start": "tsx src/index.ts",
