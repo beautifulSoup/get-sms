@@ -1,5 +1,7 @@
 # GetSms
 
+**English | [中文](README.zh-CN.md)**
+
 > A self-hosted, single-user service that collects the SMS your own phones receive and exposes one MCP tool — `get_latest_code` — so your AI agent can fetch a verification code by keyword.
 
 You run your own instance. There is no shared or hosted service, no accounts, and no multi-tenant anything. It's you, your phones, your server.
